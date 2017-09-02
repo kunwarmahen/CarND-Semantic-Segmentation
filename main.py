@@ -4,7 +4,7 @@ import helper
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
-
+import time
 
 # Check TensorFlow Version
 assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
@@ -51,18 +51,18 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     kernel_size = 1
     stride = 1
 
-    conv_layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size, stride)
-    tranp_conv_layer7 = tf.layers.conv2d_transpose(conv_layer7, num_classes, (4,4), (2,2), 'SAME')
+    conv_layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    tranp_conv_layer7 = tf.layers.conv2d_transpose(conv_layer7, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
     
-    conv_layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size, stride)
+    conv_layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
     add_layer74 = tf.add(tranp_conv_layer7, conv_layer4)
 
-    tranp_conv_layer74 = tf.layers.conv2d_transpose(add_layer74, num_classes, (4,4), (2,2), 'SAME')
+    tranp_conv_layer74 = tf.layers.conv2d_transpose(add_layer74, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
     
-    conv_layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size, stride)
+    conv_layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
     add_layer743 = tf.add(tranp_conv_layer74, conv_layer3)
 
-    tranp_conv_layer743 = tf.layers.conv2d_transpose(add_layer743, num_classes, (16,16), (8,8), 'SAME')    
+    tranp_conv_layer743 = tf.layers.conv2d_transpose(add_layer743, num_classes, (16,16), (8,8), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))    
 
     return tranp_conv_layer743
 	
@@ -105,10 +105,13 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     """
     # TODO: Implement function
     for epoch in range(epochs):
+        start_time = time.time()
         for image, gt_image in get_batches_fn(batch_size):
             ignore,loss = sess.run([train_op, cross_entropy_loss], 
-            	feed_dict = {input_image: image, correct_label: gt_image, keep_prob: 0.5, learning_rate: 0.001})
+            	feed_dict = {input_image: image, correct_label: gt_image, keep_prob: 0.5, learning_rate: 0.0001})
         print("Epoch " + str(epoch) + ", Loss: " + str(loss))
+        elapsed_time = time.time() - start_time
+        print(elapsed_time)
 		
 tests.test_train_nn(train_nn)
 
@@ -126,8 +129,8 @@ def run():
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
-    epochs = 40
-    batch_size = 20
+    epochs = 2
+    batch_size = 2
     correct_label = tf.placeholder(dtype = tf.float32, shape = (None, None, None, num_classes))
     learning_rate = tf.placeholder(dtype = tf.float32) 
     #config = tf.ConfigProto(allow_soft_placement=True)
