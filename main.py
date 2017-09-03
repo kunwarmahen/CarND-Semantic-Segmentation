@@ -51,18 +51,23 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     kernel_size = 1
     stride = 1
 
-    conv_layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
-    tranp_conv_layer7 = tf.layers.conv2d_transpose(conv_layer7, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    conv_layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size, padding='SAME', kernel_initializer=tf.random_normal_initializer
+	(stddev=0.01), kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    tranp_conv_layer7 = tf.layers.conv2d_transpose(conv_layer7, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001), kernel_initializer=tf.random_normal_initializer
+	(stddev=0.01))
     
-    conv_layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    conv_layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size, padding='SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001), kernel_initializer=tf.random_normal_initializer
+	(stddev=0.01))
     add_layer74 = tf.add(tranp_conv_layer7, conv_layer4)
 
-    tranp_conv_layer74 = tf.layers.conv2d_transpose(add_layer74, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    tranp_conv_layer74 = tf.layers.conv2d_transpose(add_layer74, num_classes, (4,4), (2,2), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001), kernel_initializer=tf.random_normal_initializer
+	(stddev=0.01))
     
-    conv_layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size, stride, kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    conv_layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size, padding='SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
     add_layer743 = tf.add(tranp_conv_layer74, conv_layer3)
 
-    tranp_conv_layer743 = tf.layers.conv2d_transpose(add_layer743, num_classes, (16,16), (8,8), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))    
+    tranp_conv_layer743 = tf.layers.conv2d_transpose(add_layer743, num_classes, (16,16), (8,8), 'SAME', kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001), kernel_initializer=tf.random_normal_initializer
+	(stddev=0.01))    
 
     return tranp_conv_layer743
 	
@@ -129,8 +134,8 @@ def run():
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
-    epochs = 2
-    batch_size = 2
+    epochs = 30
+    batch_size = 8
     correct_label = tf.placeholder(dtype = tf.float32, shape = (None, None, None, num_classes))
     learning_rate = tf.placeholder(dtype = tf.float32) 
     #config = tf.ConfigProto(allow_soft_placement=True)
